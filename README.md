@@ -124,21 +124,21 @@ Apache HBase – это нереляционная, распределенная
 
 `create ‘<table name>’,’<column family>’`
 
-Создадим таблицу employees, в которой будет две Column Family: personal_data и professional_data. Сделаем это: 
+При создании таблицы, также можно указать число версий для каждой Column Family, синтаксис следующий:
 
-`create 'employees', 'personal_data','professional_data'`
+`create '<table name>', {NAME => 'column family1', VERSIONS => N}`
 
-![image](https://user-images.githubusercontent.com/45429125/166169184-4ab6e243-91e7-4ffd-90c4-ee7d59a9df98.png)
+
+Создадим таблицу employees, в которой будет две Column Family: personal_data (versions=4) и professional_data (versions=5). Сделаем это: 
+
+`create 'employees', {NAME => 'personal_data', VERSIONS => 4}, {NAME => 'professional_data', VERSIONS => 5}`
+
 
 Проверим, что таблица действительно создалась, это можно сделать командой:
 
 `list`
 
-С ее помощью можно просмотреть все существующие таблицы.
-
-![image](https://user-images.githubusercontent.com/45429125/166169223-6108cb6a-df6c-4ea9-a222-0a6192f168a9.png)
-
-
+![image](https://user-images.githubusercontent.com/45429125/166173117-615386fe-4473-4e35-8a5c-33bf339c2a1a.png)
 
 
 Теперь установим некоторые свойства:
@@ -162,13 +162,58 @@ Put – добавить новую или обновить существующ
 
 `put 'employees','1','professional_data:salary','100000'`
 
+
+Вскоре Александр пошел на повышение: стал главным менеджером с зарплатой в 150 000 у.е и переехал в элитный район Воронежа,. Добавим соответствующие записи в таблицу. Важно, мы не хотим удалять прошлую информацию о нашем сотруднике: 
+
+`put 'employees','1','personal_data:city','Voronezh'`
+
+`put 'employees','1','professional_data:position','lead manager'`
+
+`put 'employees','1','professional_data:salary','150000'`
+
+Для просмотра наших данных мы воспользуемся командой, описанной ниже.
+
+
 ### Get
 
-`get '<table name>','row1'`
+`get '<table name>','rowid', {COLUMN ⇒ 'column family:column name', VERSIONS => N}`
 
 Get – получить данные по определенному первичному ключу (RowKey). Можно указать Column Family, откуда будет считана информация и количество версий, которые требуется прочитать. Посмотрим на первую строку нашей таблицы:
 
 `get 'employees','1'`
 
-![image](https://user-images.githubusercontent.com/45429125/166169782-d10a84c1-0bf6-4ee0-9abb-a992fc2d857f.png)
+![image](https://user-images.githubusercontent.com/45429125/166173677-bb2bfe8a-e17e-4d18-8b24-75e380c95f04.png)
 
+А теперь посмотрим на все версии данных:
+
+`get 'employees','1', {COLUMN => ['personal_data:name','personal_data:city','professional_data:position','professional_data:salary'] , VERSIONS => 5}`
+
+![image](https://user-images.githubusercontent.com/45429125/166174170-2674f7ac-908b-4947-8378-81ad018d56cb.png)
+
+
+### Scan
+
+`scan '<table name>'`
+
+Scan – поочередное чтение записей, начиная с указанной. Можно указать запись, до которой следует читать или количество записей, которые необходимо считать. Также в параметрах операции отмечается Column Family, откуда будет производиться чтение и максимальное количество версий для каждой записи.
+
+Просканируем по полной:
+
+`scan 'employees', {VERSIONS => 5}`
+
+![image](https://user-images.githubusercontent.com/45429125/166175138-3908c94b-0164-49da-b69d-a65ac17c93d9.png)
+
+
+### Delete 
+
+`delete '<table name>', '<row>', '<column name >', '<time stamp>'`
+    
+Delete – пометить определенную версию к удалению. Физического удаления при этом не произойдет, оно будет отложено до следующего Major Compaction.
+
+Удалим информацию о том, что наш работник проживал в городе Москва и сразу это проверим командой `scan`:
+
+`delete 'employees', '1', 'personal_data:city',1651453906823`
+
+![image](https://user-images.githubusercontent.com/45429125/166175343-a34dd445-fc9d-42b7-92a7-b04930d77289.png)
+
+Как можно заметить, теперь при чтении выдается только актуальное место проживания. 
