@@ -118,7 +118,7 @@ Drei:
 
 ### Деструктив
 
-Теперь выключим `redis-node-3`: `docker compose stop redis-node-3`:
+Теперь выключим `redis-node-3`: `docker compose stop redis-node-3`
 
 <img width="1423" alt="Снимок экрана 2025-06-08 в 17 46 01" src="https://github.com/user-attachments/assets/fd904cc1-e7ff-4665-89ea-00dd320cd9d5" />
 
@@ -130,7 +130,7 @@ Drei:
 <img width="707" alt="Снимок экрана 2025-06-08 в 17 46 07" src="https://github.com/user-attachments/assets/abaf1822-4093-4723-84d2-2dba88c817ad" />
 
 
-Если теперь сделать запрос на получние таблицы лидеров, то можно увидеть неожиданный результат:
+Если теперь сделать запрос на получение таблицы лидеров, то можно увидеть неожиданный результат:
 
 
 <img width="1084" alt="Снимок экрана 2025-06-08 в 17 47 35" src="https://github.com/user-attachments/assets/6eac5b05-967c-49cf-81bf-7f7d6564fa74" />
