@@ -1,0 +1,92 @@
+version: '3.7'
+
+services:
+  redis-node-1:
+    image: redis:latest
+    container_name: redis-node-1
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - 7003:6379
+    volumes:
+      - ./redis-node-1-data:/redis
+    command: redis-server /redis/redis.conf
+    networks:
+      - redis-net
+
+  redis-node-2:
+    image: redis:latest
+    container_name: redis-node-2
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - 7001:6379
+    volumes:
+      - ./redis-node-2-data:/redis
+    command: redis-server /redis/redis.conf
+    networks:
+      - redis-net
+
+  redis-node-3:
+    image: redis:latest
+    container_name: redis-node-3
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - 7002:6379
+    volumes:
+      - ./redis-node-3-data:/redis
+    command: redis-server /redis/redis.conf
+    networks:
+      - redis-net
+
+  redis-cluster-creator:
+    image: redis:latest
+    ports:
+      - 6999:6999
+    networks:
+      - redis-net
+    command: redis-cli -p 6379 --cluster create redis-node-1:6379 redis-node-2:6379 redis-node-3:6379 --cluster-yes --cluster-replicas 0
+    depends_on:
+      redis-node-1:
+        condition: service_healthy
+      redis-node-2:
+        condition: service_healthy
+      redis-node-3:
+        condition: service_healthy
+
+  redis-insight:
+    image: redislabs/redisinsight
+    ports:
+      - 5540:5540
+    networks:
+      - redis-net
+    volumes:
+      - ./redisinsight:/db
+    depends_on:
+      - redis-cluster-creator
+
+  leaderboard-app:
+    build:
+      context: ./game-client
+      dockerfile: Dockerfile
+    container_name: leaderboard-app
+    ports:
+      - "8085:8085"
+    depends_on:
+      - redis-cluster-creator
+    networks:
+      - redis-net
+
+networks:
+  redis-net:
+    driver: bridge
