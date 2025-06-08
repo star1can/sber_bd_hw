@@ -13,7 +13,7 @@ type (
 	}
 
 	App struct {
-		AppName    string `env:"APP_NAME" env-default:"saac-v2 client"`
+		AppName    string `env:"APP_NAME" env-default:"leader-board-app"`
 		AppVersion string `env:"APP_VERSION" env-default:"1.0"`
 		LogLevel   string `env:"LOG_LEVEL" env-default:"debug"`
 	}
